@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Başlangıç Konfigürasyonu & Ajan Mimarisi - demo-project</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Syne:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0e14;
+      --surface: #141923;
+      --card-bg: #1a202c;
+      --border: #2a324b;
+      --accent: #00f5d4;
+      --accent-glow: rgba(0, 245, 212, 0.22);
+      --accent-dim: rgba(0, 245, 212, 0.12);
+      --purple: #c97eff;
+      --purple-dim: rgba(201, 126, 255, 0.12);
+      --yellow: #ffd166;
+      --yellow-dim: rgba(255, 209, 102, 0.12);
+      --red: #ff6b6b;
+      --green: #06d6a0;
+      --orange: #f78c6c;
+      --blue: #00b4d8;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --success: #10b981;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.6;
+      padding-bottom: 80px;
+    }
+
+    /* QUICK NAV DOCK */
+    .quick-nav {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: rgba(11, 14, 20, 0.92);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .quick-nav-brand {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .quick-nav-links {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .nav-btn {
+      text-decoration: none;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      background: var(--surface);
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .nav-btn:hover {
+      color: #fff;
+      border-color: var(--accent);
+      background: var(--accent-dim);
+    }
+    .nav-btn.active {
+      color: #0b0e14;
+      background: var(--accent);
+      border-color: var(--accent);
+      font-weight: 700;
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    /* CONTAINER */
+    .container {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* HERO */
+    .hero {
+      margin-top: 24px;
+      padding: 40px;
+      background: linear-gradient(135deg, rgba(0, 245, 212, 0.08) 0%, rgba(20, 25, 35, 0.95) 100%);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::after {
+      content: 'INIT';
+      position: absolute;
+      right: 20px;
+      bottom: -15px;
+      font-family: 'Syne', sans-serif;
+      font-size: 130px;
+      font-weight: 800;
+      color: rgba(0, 245, 212, 0.03);
+      user-select: none;
+      pointer-events: none;
+    }
+    .badge-top {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: var(--accent-dim);
+      border: 1px solid var(--accent);
+      padding: 4px 12px;
+      border-radius: 999px;
+      margin-bottom: 16px;
+    }
+    .hero h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 34px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 12px;
+      line-height: 1.25;
+    }
+    .hero h1 span { color: var(--accent); }
+    .hero p {
+      font-size: 15px;
+      color: var(--text-muted);
+      max-width: 860px;
+      margin-bottom: 24px;
+    }
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+    .meta-tag {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      border-radius: 6px;
+      color: var(--text);
+    }
+    .meta-tag strong { color: var(--accent); }
+
+    /* SECTION TITLE */
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      color: #fff;
+      margin: 40px 0 16px 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .section-title::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 20px;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+    .section-desc {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    /* AGENT ROSTER GRID */
+    .roster-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(370px, 1fr));
+      gap: 18px;
+      margin-bottom: 36px;
+    }
+    .roster-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .roster-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    }
+    .roster-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .roster-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .roster-role {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--accent);
+    }
+    .roster-model {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .roster-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      line-height: 1.55;
+    }
+    .roster-tools {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .tool-pill {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #080a0f;
+      border: 1px solid var(--border);
+      color: #94a3b8;
+    }
+    .roster-phase {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    /* DIRECTORY TREE DISPLAY */
+    .tree-box {
+      background: #080a0f;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px;
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      color: #e2e8f0;
+      line-height: 1.7;
+      overflow-x: auto;
+      margin-bottom: 30px;
+    }
+    .tree-box .folder { color: #67e8f9; font-weight: 600; }
+    .tree-box .file { color: #fed7aa; }
+    .tree-box .rule { color: #c97eff; }
+    .tree-box .subagent { color: #ffd166; }
+    .tree-box .cmt { color: #64748b; font-style: italic; }
+
+    /* DAY-BY-DAY ROADMAP TABLE */
+    .roadmap-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 36px;
+    }
+    .roadmap-table th {
+      background: #10141d;
+      padding: 14px 18px;
+      text-align: left;
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--accent);
+      border-bottom: 1px solid var(--border);
+    }
+    .roadmap-table td {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      vertical-align: top;
+    }
+    .roadmap-table tr:last-child td { border-bottom: none; }
+    .roadmap-table tr:hover td { background: rgba(255,255,255,0.02); }
+    .day-badge {
+      font-family: 'DM Mono', monospace;
+      font-weight: 700;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    /* CODE CMD BLOCK */
+    .cmd-block {
+      background: #080a0f;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      padding: 16px;
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      color: #a5f3fc;
+      margin: 16px 0;
+      overflow-x: auto;
+      position: relative;
+    }
+
+    /* CHECKLIST BOX */
+    .checklist-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px;
+      margin-bottom: 30px;
+    }
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 13.5px;
+    }
+    .check-item:last-child { border-bottom: none; }
+    .check-icon { color: var(--accent); font-weight: bold; font-family: 'DM Mono', monospace; }
+    .check-text strong { color: #fff; }
+    .check-text p { color: var(--text-muted); font-size: 12.5px; margin-top: 2px; }
+
+    /* FOOTER */
+    .footer-box {
+      margin-top: 50px;
+      padding: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .footer-box a { color: var(--accent); text-decoration: none; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+  <!-- QUICK NAV DOCK -->
+  <nav class="quick-nav">
+    <div class="quick-nav-brand">
+      <span>⚡ AGY ENGINE // DEMO-PROJECT SETUP</span>
+    </div>
+    <div class="quick-nav-links">
+      <a href="../SDLC/SDLC-OVERVIEW.html" class="nav-btn">SDLC Hub</a>
+      <a href="../SDLC/SDLC-P1-ICRA.html" class="nav-btn">P1 İcra</a>
+      <a href="../SDLC/SDLC-P2-ICRA.html" class="nav-btn">P2 İcra</a>
+      <a href="../SDLC/SDLC-P3-ICRA.html" class="nav-btn">P3 İcra</a>
+      <a href="../SDLC/SDLC-P4-ICRA.html" class="nav-btn">P4 İcra</a>
+      <a href="../SDLC/SDLC-P5-ICRA.html" class="nav-btn">P5 İcra</a>
+      <a href="../SDLC/SDLC-P6-ICRA.html" class="nav-btn">P6 İcra</a>
+      <a href="../SDLC/SDLC-P7-ICRA.html" class="nav-btn">P7 İcra</a>
+      <a href="starting-configuration.html" class="nav-btn active">Başlangıç Konfigürasyonu</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <!-- HERO -->
+    <header class="hero">
+      <div class="badge-top">demo-project Zemin ve Konfigürasyon Protokolü</div>
+      <h1>Ajan Tabanlı Yazılım İcrası: <span>Başlangıç & Dizin Mimarisi</span></h1>
+      <p>
+        Bu doküman; <code>C:\Users\burak\OneDrive\Masaüstü\demo-project</code> dizininde uçtan uca SDLC icra süreçlerini gün gün, adım adım yürütmek için gereken <strong>Antigravity Master Agent</strong>, <strong>12 Uzman Subagent</strong>, <strong>Kural Hiyerarşisi (.agents/rules/)</strong> ve <strong>Klasör Topolojisini</strong> eksiksiz tanımlar.
+      </p>
+      <div class="hero-meta">
+        <div class="meta-tag"><strong>Proje Hedef Yolu:</strong> C:\Users\burak\OneDrive\Masaüstü\demo-project</div>
+        <div class="meta-tag"><strong>Orchestrator Motor:</strong> Antigravity CLI (agy)</div>
+        <div class="meta-tag"><strong>Alt Ajan Havuzu:</strong> 12 Görev Odaklı Subagent</div>
+        <div class="meta-tag"><strong>İcra Döngüsü:</strong> 7 Günlük Aşamalı Sprint (P1 ➔ P7)</div>
+      </div>
+    </header>
+
+    <!-- SECTION 1: AGENT & SUBAGENT ROSTER -->
+    <h2 class="section-title">1. Tespit Edilen Agent & Subagent Kadrosu (Rol & Sorumluluk Matrisi)</h2>
+    <p class="section-desc">
+      Proje boyunca ana geliştirici ajanın yükünü dağıtmak, halüsinasyonu engellemek ve her adımı uzmanlık alanına göre bağımsız denetlemek için 1 Orchestrator Agent ve 12 özel Subagent görev yapacaktır.
+    </p>
+
+    <div class="roster-grid">
+
+      <!-- MASTER AGENT -->
+      <div class="roster-card" style="border-left: 3px solid var(--accent);">
+        <div class="roster-header">
+          <div>
+            <div class="roster-name">SDLC Orchestrator Agent</div>
+            <div class="roster-role">Ana Yönetici & Kalite Kapısı Koruyucusu</div>
+          </div>
+          <span class="roster-model">Model: pro</span>
+        </div>
+        <div class="roster-desc">
+          Tüm SDLC fazlarının koordinasyonunu yürütür. Kullanıcıyla etkileşime girer, kalite kapılarını denetler ve ilgili faz adımlarında özelleşmiş subagent'ları tetikler.
+        </div>
+        <div class="roster-tools">
+          <span class="tool-pill">run_command</span>
+          <span class="tool-pill">invoke_subagent</span>
+          <span class="tool-pill">write_to_file</span>
+          <span class="tool-pill">ask_question</span>
+        </div>
+        <span class="roster-phase" style="background: var(--accent-dim); color: var(--accent);">Kapsam: Tüm Fazlar (P1–P7)</span>
+      </div>
+
+      <!-- SUBAGENT 1 -->
+      <div class="roster-card" style="border-left: 3px solid var(--accent);">
+        <div class="roster-header">
+          <div>
+            <div class="roster-name">finops-risk-analyst</div>
+            <div class="roster-role">Finansal Bütçe & Risk Modelleme Ajanı</div>
+          </div>
+          <span class="roster-model">Model: flash / pro</span>
+        </div>
+        <div class="roster-desc">
+          P1 aşamasında AWS/GCP bulut maliyet simülasyonunu yapar. GDPR/KVKK regülasyon uyumunu ve Olasılık × Etki risk matrisini hesaplar.
+        </div>
+        <div class="roster-tools">
+          <span class="tool-pill">search_web</span>
+          <span class="tool-pill">write_to_file</span>
+        </div>
+        <span class="roster-phase" style="background: var(--accent-dim); color: var(--accent);">P1: Planlama</span>
+      </div>
+
+      <!-- SUBAGENT 2 -->
+      <div class="roster-card" style="border-left: 3px solid var(--blue);">
+        <div class="roster-header">
+          <div>
+            <div class="roster-name">requirements-engineer</div>
+            <div class="roster-role">Gherkin BDD & RTM İzlenebilirlik Ajanı</div>
+          </div>
+          <span class="roster-model">Model: pro</span>
+        </div>
+        <div class="roster-desc">
+          P2 aşamasında kullanıcı hikayelerini Given-When-Then BDD formatında yazar, Abuse/Misuse senaryolarını ve %100 kapsayıcı RTM matrisini türetir.
+        </div>
+        <div class="roster-tools">
+          <span class="tool-pill">view_file</span>
+          <span class="tool-pill">write_to_file</span>
+        </div>
+        <span class="roster-phase" style="background: rgba(0, 180, 216, 0.12); color: var(--blue);">P2: Gereksinim</span>
+      </div>
+
+      <!-- SUBAGENT 3 -->
+      <div class="roster-card" style="border-left: 3px solid var(--purple);">
+        <div class="roster-header">
+          <div>
+            <div class="roster-name">system-architect</div>
+            <div class="roster-role">C4 Mermaid & Mimari Tasarım Ajanı</div>
+          </div>
+          <span class="roster-model">Model: pro</span>
+        </div>
+        <div class="roster-desc">
+          P3 aşamasında C4Context, C4Container ve C4Component diyagramlarını Mermaid sözdizimiyle çizer; teknoloji stack'i ve protokol matrisini belirler.
+        </div>
+        <div class="roster-tools">
+          <span class="tool-pill">write_to_file</span>
+          <span class="tool-pill">view_file</span>
+        </div>
+        <span class="roster-phase" style="background: var(--purple-dim); color: var(--purple);">P3: Mimari Tasarım</span>
+      </div>
+
+      <!-- SUBAGENT 4 -->
+      <div class="roster-card" style="border-left: 3px solid var(--purple);">
+        <div class="roster-header">
+          <div>
+            <div class="roster-name">security-architect</div>
+            <div class="roster-role">STRIDE Tehdit Modelleme Ajanı</div>
+          </div>
+          <span class="roster-model">Model: pro</span>
+        </div>
+        <div class="roster-desc">
+          P3 aşamasında sistem sınırlarını (Trust Boundaries) ve DFD akışlarını inceler; STRIDE tehditlerine karşı mitigation kontrollerini reçete eder.
+        </div>
+        <div class="roster-tools">
+          <span class="tool-pill">view_file</span>
+          <span class="tool-pill">write_to_file</span>
+        </div>
+        <span class="roster-phase" style="background: var(--purple-dim); color: var(--purple);">P3: Mimari Tasarım</span>
+      </div>
+
+      <!-- SUBAGENT 5 -->
+      <div class="roster-card" style="border-left: 3px solid var(--purple);">
+        <div class="roster-header">
+          <div>
+            <div class="roster-name">database-architect</div>
+            <div class="roster-role">PostgreSQL Şema & İndeksleme Ajanı</div>
+          </div>
+          <span class="roster-model">Model: pro</span>
+        </div>
+        <div class="roster-desc">
+          P3 aşamasında 3NF ilişkisel model, UUIDv7 anahtar stratejisi, B-Tree/GIN indeksleme ve Flyway/Prisma uyumlu SQL DDL scriptlerini yazar.
+        </div>
+        <div class="roster-tools">
+          <span class="tool-pill">write_to_file</span>
+          <span class="tool-pill">run_command</span>
+        </div>
+        <span class="roster-phase" style="background: var(--purple-dim); color: var(--purple);">P3: Veri Mimarisi</span>
+      </div>
+
+      <!-- SUBAGENT 6 -->
+      <div class="roster-card" style="border-left: 3px solid var(--purple);">
+        <div class="roster-header">
+          <div>
+            <div class="roster-name">api-designer</div>
+            <div class="roster-role">Contract-First OpenAPI 3.1 Ajanı</div>
+          </div>
+          <span class="roster-model">Model: inherit</span>
+        </div>
+        <div class="roster-desc">
+          P3 aşamasında OpenAPI 3.1 YAML kontratlarını, RFC 7807 hata şemalarını hazırlar ve Prism mock sunucusunu ayağa kaldırır.
+        </div>
+        <div class="roster-tools">
+          <span class="tool-pill">write_to_file</span>
+          <span class="tool-pill">run_command</span>
+        </div>
+        <span class="roster-phase" style="background: var(--purple-dim); color: var(--purple);">P3: API Sözleşmesi</span>
+      </div>
+
+      <!-- SUBAGENT 7 -->
+      <div class="roster-card" style="border-left: 3px solid var(--yellow);">
+        <div class="roster-header">
+          <div>
+            <div class="roster-name">core-developer</div>
+            <div class="roster-role">Clean Architecture & TDD Ajanı</div>
+          </div>
+          <span class="roster-model">Model: pro</span>
+        </div>
+        <div class="roster-desc">
+          P4 aşamasında Domain, Application, Infrastructure ve Presentation katmanlarını kodlar; TDD Red-Green-Refactor döngüsünü %85+ coverage ile işletir.
+        </div>
+        <div class="roster-tools">
+          <span class="tool-pill">write_to_file</span>
+          <span class="tool-pill">replace_file_content</span>
+          <span class="tool-pill">run_command</span>
+        </div>
+        <span class="roster-phase" style="background: var(--yellow-dim); color: var(--yellow);">P4: Geliştirme</span>
+      </div>
+
+      <!-- SUBAGENT 8 -->
+      <div class="roster-card" style="border-left: 3px solid var(--yellow);">
+        <div class="roster-header">
+          <div>
+            <div class="roster-name">code-reviewer</div>
+            <div class="roster-role">Bağımsız Güvenlik & Kalite Denetçisi</div>
+          </div>
+          <span class="roster-model">Model: pro</span>
+        </div>
+        <div class="roster-desc">
+          P4 aşamasında geliştirici ajandan bağımsız olarak kodları inceler; OWASP Top 10, bellek sızıntıları ve Clean Architecture ihlallerini raporlar.
+        </div>
+        <div class="roster-tools">
+          <span class="tool-pill">view_file</span>
+          <span class="tool-pill">run_command</span>
+        </div>
+        <span class="roster-phase" style="background: var(--yellow-dim); color: var(--yellow);">P4: Kod İnceleme</span>
+      </div>
+
+      <!-- SUBAGENT 9 -->
+      <div class="roster-card" style="border-left: 3px solid var(--red);">
+        <div class="roster-header">
+          <div>
+            <div class="roster-name">qa-automation-engineer</div>
+            <div class="roster-role">Testcontainers & Entegrasyon Ajanı</div>
+          </div>
+          <span class="roster-model">Model: pro</span>
+        </div>
+        <div class="roster-desc">
+          P5 aşamasında geçici PostgreSQL ve Redis Docker konteynerleriyle izole HTTP entegrasyon testlerini yazar ve doğrular.
+        </div>
+        <div class="roster-tools">
+          <span class="tool-pill">write_to_file</span>
+          <span class="tool-pill">run_command</span>
+        </div>
+        <span class="roster-phase" style="background: rgba(255, 107, 107, 0.12); color: var(--red);">P5: Entegrasyon Testi</span>
+      </div>
+
+      <!-- SUBAGENT 10 -->
+      <div class="roster-card" style="border-left: 3px solid var(--red);">
+        <div class="roster-header">
+          <div>
+            <div class="roster-name">performance-engineer</div>
+            <div class="roster-role">k6 Yük & Stres Mühendisliği Ajanı</div>
+          </div>
+          <span class="roster-model">Model: inherit</span>
+        </div>
+        <div class="roster-desc">
+          P5 aşamasında k6 betiklerini yazıp çalıştırır; 10,000 RPS tepe yükü ve p99 &lt; 200ms gecikme kriterlerini doğrular.
+        </div>
+        <div class="roster-tools">
+          <span class="tool-pill">write_to_file</span>
+          <span class="tool-pill">run_command</span>
+        </div>
+        <span class="roster-phase" style="background: rgba(255, 107, 107, 0.12); color: var(--red);">P5: Performans Testi</span>
+      </div>
+
+      <!-- SUBAGENT 11 -->
+      <div class="roster-card" style="border-left: 3px solid var(--green);">
+        <div class="roster-header">
+          <div>
+            <div class="roster-name">cloud-deployer</div>
+            <div class="roster-role">CI/CD & Progressive Delivery Ajanı</div>
+          </div>
+          <span class="roster-model">Model: inherit / pro</span>
+        </div>
+        <div class="roster-desc">
+          P6 aşamasında GitHub Actions YAML iş akışlarını, Cosign imza altyapısını ve ArgoCD Canary (%5 ➔ %100) trafik yönetimini kurar.
+        </div>
+        <div class="roster-tools">
+          <span class="tool-pill">write_to_file</span>
+          <span class="tool-pill">run_command</span>
+        </div>
+        <span class="roster-phase" style="background: rgba(6, 214, 160, 0.12); color: var(--green);">P6: Dağıtım</span>
+      </div>
+
+      <!-- SUBAGENT 12 -->
+      <div class="roster-card" style="border-left: 3px solid var(--orange);">
+        <div class="roster-header">
+          <div>
+            <div class="roster-name">sre-incident-responder</div>
+            <div class="roster-role">OTel, 30s RCA & Postmortem Ajanı</div>
+          </div>
+          <span class="roster-model">Model: pro</span>
+        </div>
+        <div class="roster-desc">
+          P7 aşamasında OpenTelemetry RED metriklerini kurar; canlı loglardaki Trace ID'leri 30 saniyede analiz edip Blameless Postmortem hazırlar.
+        </div>
+        <div class="roster-tools">
+          <span class="tool-pill">run_command</span>
+          <span class="tool-pill">write_to_file</span>
+          <span class="tool-pill">ask_question</span>
+        </div>
+        <span class="roster-phase" style="background: rgba(247, 140, 108, 0.12); color: var(--orange);">P7: Bakım & SRE</span>
+      </div>
+
+    </div>
+
+    <!-- SECTION 2: DIRECTORY ARCHITECTURE -->
+    <h2 class="section-title">2. demo-project Hedef Dizin & Konfigürasyon Mimarisi</h2>
+    <p class="section-desc">
+      Ajan tabanlı yaşam döngüsünün tam izlenebilirlikle çalışması için <code>demo-project</code> kök dizininde aşağıdaki dosya hiyerarşisi oluşturulmalıdır:
+    </p>
+
+    <div class="tree-box">
+<span class="folder">demo-project/</span>
+├── <span class="rule">AGENTS.md</span>                     <span class="cmt"># Orchestrator Ajanın anayasası, faz kapıları ve yetki kuralları</span>
+├── <span class="rule">GEMINI.md</span>                     <span class="cmt"># Antigravity CLI yerel bağlam ve çalışma kısıtları</span>
+├── <span class="folder">.agents/</span>                      <span class="cmt"># Antigravity CLI konfigürasyon ve ajan deposu</span>
+│   ├── <span class="folder">rules/</span>                    <span class="cmt"># Her faz için otomatik yüklenen kural dosyaları</span>
+│   │   ├── <span class="rule">00-general-sdlc.md</span>      <span class="cmt"># Genel SDLC disiplini ve Conventional Commits kuralı</span>
+│   │   ├── <span class="rule">01-planning.md</span>          <span class="cmt"># Faz 1: /grill-me ve FinOps standartları</span>
+│   │   ├── <span class="rule">02-requirements.md</span>      <span class="cmt"># Faz 2: Gherkin BDD ve RTM kuralı</span>
+│   │   ├── <span class="rule">03-architecture.md</span>      <span class="cmt"># Faz 3: C4 Mermaid, ADR ve STRIDE kuralı</span>
+│   │   ├── <span class="rule">04-development.md</span>       <span class="cmt"># Faz 4: Clean Architecture ve TDD Red-Green kuralı</span>
+│   │   ├── <span class="rule">05-testing.md</span>           <span class="cmt"># Faz 5: /goal, Testcontainers ve %85+ coverage kuralı</span>
+│   │   ├── <span class="rule">06-deployment.md</span>        <span class="cmt"># Faz 6: Go/No-Go ve Canary rollback kuralı</span>
+│   │   └── <span class="rule">07-maintenance.md</span>       <span class="cmt"># Faz 7: OTel RED metrikleri ve Blameless RCA kuralı</span>
+│   └── <span class="folder">subagents/</span>                <span class="cmt"># 12 Subagent için JSON/YAML tanımları</span>
+│       ├── <span class="subagent">finops-risk-analyst.json</span>
+│       ├── <span class="subagent">requirements-engineer.json</span>
+│       ├── <span class="subagent">system-architect.json</span>
+│       ├── <span class="subagent">security-architect.json</span>
+│       ├── <span class="subagent">database-architect.json</span>
+│       ├── <span class="subagent">api-designer.json</span>
+│       ├── <span class="subagent">core-developer.json</span>
+│       ├── <span class="subagent">code-reviewer.json</span>
+│       ├── <span class="subagent">qa-automation-engineer.json</span>
+│       ├── <span class="subagent">performance-engineer.json</span>
+│       ├── <span class="subagent">cloud-deployer.json</span>
+│       └── <span class="subagent">sre-incident-responder.json</span>
+├── <span class="folder">contracts/</span>                    <span class="cmt"># API-First sözleşmeleri</span>
+│   └── <span class="file">openapi.yaml</span>              <span class="cmt"># OpenAPI 3.1.0 sözleşmesi & RFC 7807 modelleri</span>
+├── <span class="folder">db/</span>                           <span class="cmt"># Veritabanı şema ve göç dosyaları</span>
+│   └── <span class="folder">migrations/</span>               <span class="cmt"># V1__initial_schema.sql, V2...</span>
+├── <span class="folder">docs/</span>                         <span class="cmt"># SDLC Yaşam Döngüsü Teslimat Deposu (Artifacts)</span>
+│   ├── <span class="folder">planning/</span>                 <span class="cmt"># PROJECT_CHARTER.md, FINOPS_BUDGET.md, RISK_REGISTER.md</span>
+│   ├── <span class="folder">analysis/</span>                 <span class="cmt"># SRS.md, USER_STORIES.md, ABUSE_CASES.md, RTM_MATRIX.md</span>
+│   ├── <span class="folder">architecture/</span>             <span class="cmt"># C4_ARCHITECTURE.md, DATA_MODEL.md, STRIDE_THREAT_MODEL.md</span>
+│   │   └── <span class="folder">adr/</span>                  <span class="cmt"># ADR-001..ADR-005 Mimari Karar Kayıtları</span>
+│   ├── <span class="folder">reviews/</span>                  <span class="cmt"># CODE_REVIEW_REPORT.md (Subagent onay raporu)</span>
+│   ├── <span class="folder">qa/</span>                       <span class="cmt"># TEST_REPORT.md, PERFORMANCE_REPORT.md, QA_SIGN_OFF_REPORT.md</span>
+│   ├── <span class="folder">deploy/</span>                   <span class="cmt"># GO_NO_GO_CHECKLIST.md, STAGING_VERIFICATION.md</span>
+│   ├── <span class="folder">runbooks/</span>                 <span class="cmt"># RUNBOOK_DEPLOYMENT_ROLLBACK.md</span>
+│   └── <span class="folder">postmortems/</span>              <span class="cmt"># POSTMORTEM_INCIDENT_*.md</span>
+├── <span class="folder">src/</span>                          <span class="cmt"># Temiz Mimari Kaynak Kodları</span>
+│   ├── <span class="folder">domain/</span>                   <span class="cmt"># Entities, Value Objects, Domain Events (Saf kod)</span>
+│   ├── <span class="folder">application/</span>              <span class="cmt"># Use Cases, DTOs, In/Out Ports</span>
+│   ├── <span class="folder">infrastructure/</span>           <span class="cmt"># PostgreSQL adapter, Redis, OTel telemetrisi</span>
+│   ├── <span class="folder">presentation/</span>             <span class="cmt"># REST Controllers, Middlewares, Zod schemas</span>
+│   └── <span class="folder">config/</span>                   <span class="cmt"># Fail-fast ortam değişkenleri</span>
+├── <span class="folder">tests/</span>                        <span class="cmt"># Test Süiti</span>
+│   ├── <span class="folder">unit/</span>                     <span class="cmt"># Hızlı birim testler (Vitest/Jest)</span>
+│   ├── <span class="folder">integration/</span>              <span class="cmt"># Testcontainers gerçek DB testleri</span>
+│   └── <span class="folder">load/</span>                     <span class="cmt"># k6 10k RPS performans scriptleri</span>
+├── <span class="folder">deploy/</span>                       <span class="cmt"># Dağıtım ve İzleme Kodları</span>
+│   ├── <span class="folder">k8s/</span>                      <span class="cmt"># Argo Rollout (%5->%100 Canary manifestoları)</span>
+│   ├── <span class="folder">prometheus/</span>               <span class="cmt"># Alert kuralları (alerts.yml)</span>
+│   └── <span class="folder">grafana/</span>                  <span class="cmt"># Hazır RED metrik panosu (dashboard.json)</span>
+├── <span class="folder">.github/workflows/</span>            <span class="cmt"># CI/CD Boru Hattı (ci.yml, deploy.yml)</span>
+├── <span class="file">Dockerfile</span>                    <span class="cmt"># Multi-stage Distroless/Alpine konteyner imajı</span>
+└── <span class="file">docker-compose.yml</span>            <span class="cmt"># Yerel servisler (App, Postgres 16, Redis, Prism Mock)</span>
+    </div>
+
+    <!-- SECTION 3: DAY-BY-DAY EXECUTION ROADMAP -->
+    <h2 class="section-title">3. Gün Gün İcra Yol Haritası (7 Günlük Sprint Takvimi)</h2>
+    <p class="section-desc">
+      Aşağıdaki tablo, `demo-project` klasöründe her gün hangi fazın icra edileceğini, devreye girecek ajanları ve üretilecek somut teslimatları özetler:
+    </p>
+
+    <table class="roadmap-table">
+      <thead>
+        <tr>
+          <th>Gün / Faz</th>
+          <th>Görevli Ajan & Motor</th>
+          <th>İcra Edilecek Adımlar</th>
+          <th>Üretilecek Kritik Teslimatlar (Artifacts)</th>
+          <th>Kalite Kapısı (Gate Check)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="day-badge" style="background: var(--accent-dim); color: var(--accent);">GÜN 1: P1</span><br><strong>Planlama</strong></td>
+          <td>Orchestrator Agent + <code>finops-risk-analyst</code><br><span style="font-size: 11px; color: var(--accent);">Komut: /grill-me & /plan</span></td>
+          <td>A1: SMART Hedefler & Vizyon<br>A2: Fizibilite & KVKK/GDPR<br>A3: FinOps Bulut Bütçesi<br>A4: Risk Matrisi<br>A5: WBS & Charter</td>
+          <td><code>docs/planning/PROJECT_CHARTER.md</code><br><code>docs/planning/FINOPS_BUDGET.md</code><br><code>docs/planning/RISK_REGISTER.md</code></td>
+          <td>Bütçe sapma marjı &lt; %10, ROI pozitif, yasal engel sıfır.</td>
+        </tr>
+        <tr>
+          <td><span class="day-badge" style="background: rgba(0, 180, 216, 0.12); color: var(--blue);">GÜN 2: P2</span><br><strong>Gereksinim</strong></td>
+          <td><code>requirements-engineer</code><br><span style="font-size: 11px; color: var(--blue);">Komut: agy run --model pro</span></td>
+          <td>A1: Event Storming<br>A2: MoSCoW Önceliklendirme<br>A3: Sayısal NFR/SLO Spesifikasyonu<br>A4: Gherkin BDD & Abuse Cases<br>A5: RTM Matrisi</td>
+          <td><code>docs/analysis/SRS.md</code><br><code>docs/analysis/USER_STORIES.md</code><br><code>docs/analysis/ABUSE_CASES.md</code><br><code>docs/analysis/RTM_MATRIX.md</code></td>
+          <td>Tüm gereksinimler Gherkin BDD formatında, RTM eşleşmesi %100.</td>
+        </tr>
+        <tr>
+          <td><span class="day-badge" style="background: var(--purple-dim); color: var(--purple);">GÜN 3: P3</span><br><strong>Tasarım</strong></td>
+          <td><code>system-architect</code> + <code>security-architect</code> + <code>database-architect</code><br><span style="font-size: 11px; color: var(--purple);">Komut: /boost</span></td>
+          <td>A1: Mermaid C4 Modeli (C1-C3)<br>A2: ADR Karar Kayıtları<br>A3: STRIDE Tehdit Modellemesi<br>A4: PostgreSQL DDL & İndeksler<br>A5: OpenAPI 3.1 & Prism Mock</td>
+          <td><code>docs/architecture/C4_ARCHITECTURE.md</code><br><code>docs/architecture/adr/ADR-001..004.md</code><br><code>docs/architecture/STRIDE_THREAT_MODEL.md</code><br><code>contracts/openapi.yaml</code></td>
+          <td>Spectral linter 0 hata, Prism mock sunucusu ayakta (port 4010).</td>
+        </tr>
+        <tr>
+          <td><span class="day-badge" style="background: var(--yellow-dim); color: var(--yellow);">GÜN 4: P4</span><br><strong>Geliştirme</strong></td>
+          <td><code>core-developer</code> + <code>code-reviewer</code><br><span style="font-size: 11px; color: var(--yellow);">Komut: agy run & TDD Loop</span></td>
+          <td>A1: Clean Architecture İskeleti<br>A2: Pre-Commit & GitLeaks<br>A3: TDD Red-Green-Refactor<br>A4: Subagent Kod İncelemesi<br>A5: Multi-Stage Dockerfile</td>
+          <td><code>src/domain/</code>, <code>src/application/</code>, <code>src/infrastructure/</code><br><code>docs/reviews/CODE_REVIEW_REPORT.md</code><br><code>Dockerfile</code> (Distroless non-root)</td>
+          <td>Branch coverage %85+, Subagent kararı: <code>APPROVED</code>, 0 secret leak.</td>
+        </tr>
+        <tr>
+          <td><span class="day-badge" style="background: rgba(255, 107, 107, 0.12); color: var(--red);">GÜN 5: P5</span><br><strong>Test & QA</strong></td>
+          <td><code>qa-automation-engineer</code> + <code>performance-engineer</code><br><span style="font-size: 11px; color: var(--red);">Komut: /goal (Zero-Failure)</span></td>
+          <td>A1: Testcontainers Entegrasyonu<br>A2: k6 10k RPS Yük Testi<br>A3: Semgrep & Trivy Güvenlik Taraması<br>A4: /goal ile Otonom Onarım<br>A5: QA Sign-off Belgesi</td>
+          <td><code>tests/integration/api.spec.ts</code><br><code>docs/qa/PERFORMANCE_REPORT.md</code><br><code>docs/qa/SECURITY_SCAN_REPORT.md</code><br><code>docs/qa/QA_SIGN_OFF_REPORT.md</code></td>
+          <td>p99 &lt; 200ms, 0 Critical / 0 High CVE, QA Sign-off onaylandı.</td>
+        </tr>
+        <tr>
+          <td><span class="day-badge" style="background: rgba(6, 214, 160, 0.12); color: var(--green);">GÜN 6: P6</span><br><strong>Dağıtım</strong></td>
+          <td><code>cloud-deployer</code> + Release Manager<br><span style="font-size: 11px; color: var(--green);">Komut: agy run & Progressive Rollout</span></td>
+          <td>A1: Go/No-Go Kontrol Listesi<br>A2: GitHub Actions CI/CD Pipeline<br>A3: Staging Duman (Smoke) Testleri<br>A4: ArgoCD %5 ➔ %100 Canary Geçişi<br>A5: 30 Saniye Rollback Runbook</td>
+          <td><code>docs/deploy/GO_NO_GO_CHECKLIST.md</code><br><code>.github/workflows/deploy.yml</code><br><code>k8s/rollout.yaml</code><br><code>docs/runbooks/RUNBOOK_DEPLOYMENT_ROLLBACK.md</code></td>
+          <td>Canary hata oranı &lt; %0.1, tüm duman testleri HTTP 200.</td>
+        </tr>
+        <tr>
+          <td><span class="day-badge" style="background: rgba(247, 140, 108, 0.12); color: var(--orange);">GÜN 7: P7</span><br><strong>Bakım & İzleme</strong></td>
+          <td><code>sre-incident-responder</code><br><span style="font-size: 11px; color: var(--orange);">Komut: agy run & /plan (v2.0)</span></td>
+          <td>A1: OpenTelemetry RED Metrikleri<br>A2: 30 Saniyede Canlı Log RCA<br>A3: Suçsuz (Blameless) Postmortem<br>A4: Acil CVE Hotfix Hattı<br>A5: SPACE/DORA Analizi & v2.0 Döngüsü</td>
+          <td><code>src/infrastructure/telemetry.ts</code><br><code>docs/postmortems/POSTMORTEM_INCIDENT_*.md</code><br><code>docs/ops/DORA_SPACE_METRICS.md</code><br><code>NEXT_VERSION_BACKLOG.md</code></td>
+          <td>Telemetry aktif, postmortem aksiyonları v2.0 Planlama fazına bağlandı.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- SECTION 4: ONE-CLICK AUTOMATED SETUP -->
+    <h2 class="section-title">4. Tek Tıkla Otomatik Zemin Hazırlama Betiği (PowerShell)</h2>
+    <p class="section-desc">
+      Aşağıdaki PowerShell script'ini doğrudan <code>demo-project</code> dizininde çalıştırarak tüm klasör hiyerarşisini, kural dosyalarını ve `AGENTS.md` anayasasını 3 saniye içinde oluşturabilirsiniz:
+    </p>
+
+    <div class="cmd-block">
+<pre style="margin: 0; color: #a5f3fc; font-size: 12.5px; line-height: 1.6;">
+<span style="color: #64748b;"># demo-project dizininde PowerShell ile çalıştırın:</span>
+$base = "C:\Users\burak\OneDrive\Masaüstü\demo-project"
+
+<span style="color: #64748b;"># 1. Klasör Hiyerarşisini Oluştur</span>
+$folders = @(
+  ".agents/rules", ".agents/subagents", "contracts", "db/migrations",
+  "docs/planning", "docs/analysis", "docs/architecture/adr", "docs/reviews",
+  "docs/qa", "docs/deploy", "docs/runbooks", "docs/postmortems", "docs/ops",
+  "src/domain", "src/application", "src/infrastructure", "src/presentation", "src/config",
+  "tests/unit", "tests/integration", "tests/load",
+  "deploy/k8s", "deploy/prometheus", "deploy/grafana",
+  ".github/workflows", ".husky"
+)
+foreach ($f in $folders) {
+  $p = Join-Path $base $f
+  if (-not (Test-Path $p)) { New-Item -ItemType Directory -Path $p -Force | Out-Null }
+}
+
+<span style="color: #64748b;"># 2. AGENTS.md Ana Anayasasını Oluştur</span>
+$agentsContent = @"
+# DEMO PROJECT - AGENTIC SDLC MASTER CONSTITUTION
+Bu repo Antigravity CLI ajanları tarafından uçtan uca yönetilen kurumsal bir projedir.
+
+## TEMEL PRENSİPLER
+1. Her faz (P1-P7) ve her adım (A1-A5) ilgili kural dosyasına (.agents/rules/) tam uymak zorundadır.
+2. Kalite kapısı doğrulanmadan bir sonraki adıma ASLA geçilemez.
+3. Test yazılmadan prodüksiyon kodu yazılamaz (TDD zorunluluğu).
+4. Sır/API Key commit edilemez; GitLeaks kontrolleri atlanamaz.
+5. Değişiklikler Conventional Commits formatında kaydedilir.
+"@
+Set-Content -Path (Join-Path $base "AGENTS.md") -Value $agentsContent -Encoding UTF8
+
+<span style="color: #64748b;"># 3. Faz Kural Dosyalarını (.agents/rules/) Oluştur</span>
+$phases = @("00-general-sdlc", "01-planning", "02-requirements", "03-architecture", "04-development", "05-testing", "06-deployment", "07-maintenance")
+foreach ($ph in $phases) {
+  $ruleFile = Join-Path $base ".agents/rules/$ph.md"
+  if (-not (Test-Path $ruleFile)) {
+    Set-Content -Path $ruleFile -Value "# Rule: $ph`nBu fazda ilgili SDLC-PX-ICRA.html kılavuzundaki prompt ve kapılara sıkı bağlılık esastır." -Encoding UTF8
+  }
+}
+
+Write-Host "TEBRİKLER: demo-project dizini ve Antigravity CLI zemin konfigürasyonu başarıyla hazırlandı!" -ForegroundColor Green
+</pre>
+    </div>
+
+    <!-- SECTION 5: QUALITY GATES CHECKLIST -->
+    <h2 class="section-title">5. İcra Öncesi Hazırlık Denetim Listesi (Pre-Flight Checklist)</h2>
+    <div class="checklist-box">
+      <div class="check-item">
+        <span class="check-icon">[✓]</span>
+        <div class="check-text">
+          <strong>Dizin Varlığı & Temizlik</strong>
+          <p><code>C:\Users\burak\OneDrive\Masaüstü\demo-project</code> yolu hazırdır ve temiz bir çalışma alanına sahiptir.</p>
+        </div>
+      </div>
+      <div class="check-item">
+        <span class="check-icon">[✓]</span>
+        <div class="check-text">
+          <strong>Antigravity CLI & Model Erişimi</strong>
+          <p><code>agy</code> CLI kurulu ve <code>pro</code> modeline derin muhakeme (deep reasoning) yetkisiyle erişebilmektedir.</p>
+        </div>
+      </div>
+      <div class="check-item">
+        <span class="check-icon">[✓]</span>
+        <div class="check-text">
+          <strong>İcra Kılavuzları & Şablon Bağlantısı</strong>
+          <p>Tüm adımların komut ve promptları <code>SDLC/SDLC-P1-ICRA.html</code> ile <code>P7-ICRA.html</code> arasında kullanıma hazırdır.</p>
+        </div>
+      </div>
+      <div class="check-item">
+        <span class="check-icon">[✓]</span>
+        <div class="check-text">
+          <strong>Git & Pre-Commit Altyapısı</strong>
+          <p>Proje kökünde <code>git init</code> çalıştırılarak GitLeaks ve Husky korumaları devreye sokulmaya hazırdır.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer-box">
+      <span>Tüm faz icra kılavuzlarına ve prodüksiyon promptlarına erişmek için:</span><br>
+      <a href="../SDLC/SDLC-OVERVIEW.html">SDLC Genel Bakış Panosuna Dön →</a> |
+      <a href="../SDLC/SDLC-P1-ICRA.html">Faz 1 İcrasını Başlat (Gün 1) →</a>
+    </div>
+
+  </div>
+
+</body>
+</html>
