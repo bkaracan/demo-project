@@ -4,7 +4,7 @@
 **Standart:** IEEE 830-1998 Standart Formatı  
 **Tarih:** 19 Eylül 2026  
 **Sürüm:** v1.0.0  
-**SDLC Fazı:** Aşama 02 (Gereksinim Analizi) — Adım A2 (Fonksiyonel Gereksinimler & MoSCoW)  
+**SDLC Fazı:** Aşama 02 (Gereksinim Analizi) — Adım A2 & A3 (Fonksiyonel & NFR Gereksinimleri)  
 **Girdi Belgeleri:** [PROJECT_CHARTER.md](file:///C:/Users/burak/OneDrive/Masaüstü/demo-project/PROJECT_CHARTER.md), [DOMAIN_EVENTS.md](file:///C:/Users/burak/OneDrive/Masaüstü/demo-project/DOMAIN_EVENTS.md)  
 **Statü:** **ONAYLANDI (Quality Gate Geçildi)**  
 
@@ -24,6 +24,7 @@ Platform; bireysel son kullanıcıların günlük, haftalık ve aylık zaman pro
 - **JWT:** JSON Web Token (RFC 7519)
 - **IDOR:** Insecure Direct Object Reference (Yetkisiz Nesne Erişimi)
 - **TTL:** Time-To-Live (Önbellek Yaşam Süresi)
+- **SLO / SLI:** Service Level Objective / Indicator
 
 ---
 
@@ -117,14 +118,58 @@ Charter ve Fizibilite kararları doğrultusunda aşağıdaki gereksinimler ilk s
 
 ---
 
-## 4. DOĞRULAMA VE KALİTE KAPISI (QUALITY GATE SIGN-OFF)
+## 4. FONKSİYONEL OLMAYAN GEREKSİNİMLER (NON-FUNCTIONAL REQUIREMENTS - NFR) & SAYISAL SLO
 
-- [x] **IEEE 830 Standart Formatı:** Giriş, Genel Tanım ve Fonksiyonel Gereksinimler bölümleri oluşturuldu.
-- [x] **Modüler ID Standardı:** `FR-AUTH-XXX`, `FR-TASK-XXX`, `FR-SCHED-XXX`, `FR-NOTIF-XXX`, `FR-PROF-XXX`, `FR-OOS-XXX` kullanıldı.
-- [x] **MoSCoW Sınıflandırması:** 16 Must, 3 Should, 1 Could ve 5 Won't maddesi netleştirildi.
-- [x] **Muğlak Sıfatlar Reddedildi:** "Kolay, hızlı, güvenli" gibi sübjektif ifadeler kullanılmadı; sayısal ve kural odaklı yazıldı.
-- [x] **İstisna Yönetimi:** Her başarılı fonksiyonel kuralın karşısına en az 1 somut hata ve edge-case durumu (`EX-XXX`) eklendi.
-- [x] **Charter Uyumu:** Must maddeleri MVP kapsamı sınırlarında kaldı.
+Sistem kalitesi, ölçeklenebilirliği, güvenliği ve dayanıklılığı aşağıdaki 5 temel eksende sayısal, doğrulanabilir ve test edilebilir eşiklerle belirlenmiştir:
 
-**Baş İş Analisti:** Business Analyst  
-**Statü:** **ONAYLANDI (P2 Aşama 02 Adım A2 Tamamlandı — Adım A3 NFR & SLO Kriterlerine Geçişe Hazır)**
+### 4.1. Performans ve Yanıt Süresi (Latency & Throughput)
+
+| NFR ID | Metrik / Nitelik | Sayısal Hedef Eşik (SLO) | İşlem Koşulu ve Kapsam | Doğrulama & Test Yöntemi |
+| :---: | :--- | :--- | :--- | :--- |
+| **NFR-PERF-001** | API P95 Yanıt Süresi | **P95 < 150 ms** (Normal yükte < 100 ms) | 1.000 eşzamanlı sanal kullanıcı (VU) altında tüm `GET /api/v1/tasks` ve `GET /api/v1/schedule` sorguları | K6 yük testi (`k6 run --vus 1000 --duration 10m`) ve Prometheus telemetrisi ile doğrulanacaktır. |
+| **NFR-PERF-002** | API P99 Yanıt Süresi | **P99 < 400 ms** | 1.000 eşzamanlı istek altında en yavaş %1'lik dilimdeki karmaşık filtreleme sorguları | K6 stres testi ve APM OpenTelemetry izleri (distributed tracing) ile doğrulanacaktır. |
+| **NFR-PERF-003** | Eşzamanlı İşlem Yükü (Throughput) | **>= 500 RPS** (Pik: 1.000 RPS) | Sistemde hata oranı (HTTP 5xx) < %0.1 olacak şekilde sürekli yük altında | K6 sabit throughput senaryosu (`constant-arrival-rate: 500`) ile doğrulanacaktır. |
+| **NFR-PERF-004** | İlk İçerikli Boyama (FCP) & LCP | **FCP < 1.2 sn, LCP < 2.5 sn** | 4G mobil ağ bağlantısında PWA / Web arayüz ilk yükleme performansı | Google Lighthouse CI ve Web Vitals test otomasyonu ile doğrulanacaktır. |
+
+### 4.2. Erişilebilirlik ve Güvenilirlik (Availability & SLA)
+
+| NFR ID | Metrik / Nitelik | Sayısal Hedef Eşik (SLO) | İşlem Koşulu ve Kapsam | Doğrulama & Test Yöntemi |
+| :---: | :--- | :--- | :--- | :--- |
+| **NFR-AVAIL-001** | Sistem Uptime (Hizmet Süresi) | **%99.9 Uptime** | Ayda en fazla **43.8 dakika** plansız kesinti toleransı (7/24 bazında) | Harici Uptime Robot / Datadog sentetik monitörleri ile 60 saniyede bir doğrulanacaktır. |
+| **NFR-AVAIL-002** | Hata Bütçesi (Error Budget) | **Aylık max %0.1 Hata Oranı** | Toplam HTTP istekleri içinde 5xx yanıtlarının oranı <= %0.1 | Grafana SLO Panosu ve Alertmanager kuralı ile otomatik alarm tetiklenecektir. |
+
+### 4.3. Güvenlik, Kriptografi ve Uyum (Security & Privacy)
+
+| NFR ID | Metrik / Nitelik | Sayısal Hedef Eşik (SLO) | İşlem Koşulu ve Kapsam | Doğrulama & Test Yöntemi |
+| :---: | :--- | :--- | :--- | :--- |
+| **NFR-SEC-001** | İletimde Şifreleme (In-Transit) | **TLS 1.3 Zorunlu** (Min. TLS 1.2) | Tüm HTTP trafiği HTTPS'e yönlendirilmeli, HSTS `max-age=31536000` aktif olmalıdır. | SSL Labs API testi ile A+ skoru ve `curl -v` SSL el sıkışma doğrulaması yapılacaktır. |
+| **NFR-SEC-002** | Durağan Veri Şifreleme (At-Rest) | **AES-256 (KMS Entegre)** | PostgreSQL veri tabloları, WAL logları, Redis/Valkey dump'ları ve S3 yedekleri | Terraform IaC güvenlik denetimi (`checkov` / `tfsec`) ile doğrulanacaktır. |
+| **NFR-SEC-003** | Parola ve Kimlik Güvenliği | **Argon2id Kriptografik Karma** | Parametreler: `m=65536` (64MB), `t=3` (3 iterasyon), `p=4` (4 paralellik). | OWASP ASVS Seviye 2 doğrulama testleri ve birim testler ile doğrulanacaktır. |
+| **NFR-SEC-004** | Web Güvenlik Standartları | **OWASP ASVS Seviye 2 Uyumu** | XSS, CSRF, SQL Injection, IDOR, SSRF zafiyetlerine karşı sıfır tolerans | OWASP ZAP DAST tarayıcısı ve SonarQube SAST taraması ile CI hattında doğrulanacaktır. |
+
+### 4.4. Felaket Kurtarma ve İş Sürekliliği (Disaster Recovery)
+
+| NFR ID | Metrik / Nitelik | Sayısal Hedef Eşik (SLO) | İşlem Koşulu ve Kapsam | Doğrulama & Test Yöntemi |
+| :---: | :--- | :--- | :--- | :--- |
+| **NFR-DR-001** | Kurtarma Noktası Hedefi (RPO) | **RPO < 5 Dakika** | Fiziksel veri merkezi veya bölge felaketinde kabul edilebilir maksimum veri kaybı süresi | PostgreSQL RDS Point-in-Time Recovery (PITR) ve sürekli WAL arşivleme simülasyonu ile doğrulanacaktır. |
+| **NFR-DR-002** | Kurtarma Zamanı Hedefi (RTO) | **RTO < 30 Dakika** | Kesinti anından itibaren sistemin tüm servisleriyle ayağa kaldırılma süresi | 6 aylık periyodik Chaos Engineering ve Multi-AZ otomatik failover tatbikatı ile doğrulanacaktır. |
+
+### 4.5. Erişilebilirlik ve Kullanıcı Deneyimi (Accessibility & UX)
+
+| NFR ID | Metrik / Nitelik | Sayısal Hedef Eşik (SLO) | İşlem Koşulu ve Kapsam | Doğrulama & Test Yöntemi |
+| :---: | :--- | :--- | :--- | :--- |
+| **NFR-ACC-001** | Dijital Erişilebilirlik Standardı | **WCAG 2.1 AA Seviyesi** | Tüm kullanıcı arayüzlerinde metin ve arka plan kontrast oranı en az **4.5:1** olmalıdır. | `axe-core` otomatik test aracı ve Pa11y CI entegrasyonu ile doğrulanacaktır. |
+| **NFR-ACC-002** | Ekran Okuyucu ve Klavye Uyumu | **%100 Klavye ile Gezinilebilirlik** | Tüm görev oluşturma, tamamlama ve tarih seçme akışları sadece `Tab`, `Enter`, `Space` ile yönetilebilmelidir. | Playwright klavye navigasyon senaryoları ve NVDA / VoiceOver ekran okuyucu testleri ile doğrulanacaktır. |
+
+---
+
+## 5. DOĞRULAMA VE KALİTE KAPISI (QUALITY GATE SIGN-OFF)
+
+- [x] **IEEE 830 Standart Formatı:** Bölüm 1 (Giriş), Bölüm 2 (Genel Tanım), Bölüm 3 (Fonksiyonel) ve Bölüm 4 (NFR) eksiksiz yapılandırıldı.
+- [x] **Modüler NFR ID Standardı:** `NFR-PERF-XXX`, `NFR-AVAIL-XXX`, `NFR-SEC-XXX`, `NFR-DR-XXX`, `NFR-ACC-XXX` tanımlandı.
+- [x] **Sayısal ve Ölçülebilir Eşikler:** Sübjektif sıfatlar kullanılmadı; P95 < 150ms, P99 < 400ms, %99.9 Uptime, RPO < 5dk, RTO < 30dk, WCAG 2.1 AA değerleri bağlandı.
+- [x] **Somut Doğrulama Yöntemleri:** Her NFR maddesi için K6, ZAP, SSL Labs, axe-core ve PITR gibi doğrulama araçları belirtildi.
+- [x] **Charter & FinOps Uyumu:** Belirlenen SLO kriterlerinin $500/ay bulut altyapı bütçesiyle tam uyumlu olduğu teyit edildi.
+
+**SRE & Sistem Baş Mimarı:** SRE Architect  
+**Statü:** **ONAYLANDI (P2 Aşama 02 Adım A3 Tamamlandı — Adım A4 User Stories & BDD Senaryolarına Geçişe Hazır)**
